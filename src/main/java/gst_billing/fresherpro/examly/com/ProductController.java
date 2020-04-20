@@ -25,6 +25,7 @@ public class ProductController {
 
     Product cproduct;
     double amount=0;
+    String error="";
     ArrayList<searchResults> search_results = new ArrayList<searchResults>();
 
 
@@ -43,6 +44,7 @@ public class ProductController {
 	public String getProduct(@PathVariable Integer id,Model model) {
 		model.addAttribute("product", productRepository.findByProductCode(id));
         model.addAttribute("total",amount);
+        model.addAttribute("error",error);
 		return "product";
 	}
     @RequestMapping("/choose/{id}")
@@ -51,24 +53,36 @@ public class ProductController {
         cproduct = productRepository.findByProductCode(id);
         model.addAttribute("product",cproduct);
         model.addAttribute("total",amount);
+        model.addAttribute("error",error);
         model.addAttribute("sproducts",search_results);
+        error="";
         return "billing";
     }
 
     @PostMapping("/addProduct")
     public String addProductToList(Model model,@RequestParam Double quantity)
     {
-        searchResults temp = new searchResults();
-        temp.product = cproduct;
-        temp.quantity = quantity;
-        double amt = cproduct.getProductPrice() * quantity;
-        amt=amt+(amt/cproduct.getProductGst());
-        amount=amount+amt;
-        temp.amount = amt;
-        search_results.add(temp);
-        model.addAttribute("sproducts",search_results);
-        model.addAttribute("product",new Product());
-        model.addAttribute("total",amount);
+        if(cproduct!=null && cproduct.getProductName()!=null)
+        {
+            searchResults temp = new searchResults();
+            temp.product = cproduct;
+            temp.quantity = quantity;
+            double amt = cproduct.getProductPrice() * quantity;
+            amt=amt+(amt/cproduct.getProductGst());
+            amount=amount+amt;
+            temp.amount = amt;
+            search_results.add(temp);
+            cproduct=null;
+            error="Item added!!";
+        }
+        else error="Choose one item before proceeding !!!";
+
+            model.addAttribute("sproducts",search_results);        
+            model.addAttribute("error",error);
+            model.addAttribute("product",new Product());
+            model.addAttribute("total",amount);
+            
+        
         return "billing";
     }
 
@@ -95,15 +109,16 @@ public class ProductController {
 	public String getAllProducts(Model model){
 		model.addAttribute("products",productRepository.findAll());
         model.addAttribute("total",amount);
+        model.addAttribute("error",error);
 		return "products";
 	}
 
     @GetMapping(path="/billing")
     public String goBilling(Model model)
     {
-        Product t = new Product();
-        t.setProductName("");
-        model.addAttribute("product",t);
+        error="";
+        model.addAttribute("error",error);
+        model.addAttribute("product",new Product());
         model.addAttribute("total",amount);
         model.addAttribute("sproducts",search_results);
         return "billing";
@@ -118,6 +133,9 @@ public class ProductController {
             Product temp = results.get(i);
             if(temp.getProductName().contains(productName)) rproducts.add(temp);
         }
+        if(rproducts.size()==0) error="No results found";
+        else error="No of results found : "+rproducts.size();
+        model.addAttribute("error",error);
         model.addAttribute("product",new Product());
         model.addAttribute("total",amount);
         model.addAttribute("sproducts",search_results);
