@@ -131,7 +131,8 @@ public class ProductController {
         for(int i=0;i<results.size();i++)
         {
             Product temp = results.get(i);
-            if(temp.getProductName().contains(productName)) rproducts.add(temp);
+            if(temp.getProductName().contains(productName) || String.valueOf(temp.getProductCode()).contains(productName))
+             rproducts.add(temp);
         }
         if(rproducts.size()==0) error="No results found";
         else error="No of results found : "+rproducts.size();
